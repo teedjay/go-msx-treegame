@@ -1,0 +1,10 @@
+# Rights holder's data — never commit.
+*.rom
+*.ROM
+assets/**/*.bin
+docs/listing.asm
+
+# Local outputs
+/shots/
+*.test
+.DS_Store

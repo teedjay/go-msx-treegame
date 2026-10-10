@@ -1,0 +1,23 @@
+go-msx-treegame — unofficial, non-commercial native Go port
+
+This project is an independent, unofficial, non-commercial reimplementation
+of the game logic of a 1984 MSX1 cartridge. It is not affiliated with,
+authorised, sponsored or endorsed by the original rights holder.
+
+What this repository contains:
+  - Original Go source code written for this project.
+  - Tools that read a ROM image supplied by the user and extract assets
+    from it locally.
+
+What this repository does NOT contain or distribute:
+  - The ROM image, or any part of it.
+  - Graphics, sound, text or other data extracted from the ROM.
+  - A disassembly listing of the ROM.
+
+The engine executes no original machine code: every routine has been
+rewritten by hand as ordinary Go. At build time, users must supply their own
+legally obtained ROM image, from which the extract tool derives the assets.
+
+All trademarks and copyrights in the original game belong to their
+respective owners. If you are a rights holder and have concerns about this
+project, please get in touch and it will be addressed promptly.

@@ -24,6 +24,9 @@ type Console struct {
 	// Unported is set to the Z80 address of the last not-yet-ported
 	// routine the engine reached (0 if none), so tools can report it.
 	Unported uint16
+	// RandR, when set, supplies the values of LD A,R (see rng.go).
+	RandR    func(pc uint16) byte
+	rngState uint32
 }
 
 // New returns a console in its power-on state.

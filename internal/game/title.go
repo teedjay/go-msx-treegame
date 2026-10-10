@@ -82,13 +82,6 @@ func (c *Console) state6() {
 	c.advanceState(0x20)
 }
 
-// setupPlay prepares a stage.
-//
-// TODO: not yet ported, see $53F0.
-func (c *Console) setupPlay() {
-	c.Unported = 0x53F0
-}
-
 // wipeColumn clears one name-table column per call, alternating from the
 // right and left edges towards the middle, and ends the sprite list. It
 // returns true (S flag set) once RAM[$004] has counted below zero.
@@ -230,8 +223,9 @@ func (c *Console) revealTitle() {
 // $FF to end.
 //
 // Ported from $4079-$408D (High). The $4075 entry (mask $00) is
-// unreferenced.
-func (c *Console) drawText(addr uint16, mask byte) {
+// unreferenced. It returns DE as the original leaves it: one past the last
+// character written.
+func (c *Console) drawText(addr uint16, mask byte) uint16 {
 	hl := addr
 	for {
 		de := uint16(romByte(hl)) | uint16(romByte(hl+1))<<8
@@ -240,7 +234,7 @@ func (c *Console) drawText(addr uint16, mask byte) {
 			a := romByte(hl)
 			hl++
 			if a == 0xFF {
-				return
+				return de
 			}
 			if a == 0xFE {
 				break

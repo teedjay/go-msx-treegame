@@ -75,6 +75,70 @@ var Entries = []Entry{
 			"the colour that $615D substitutes for nibble 3. Fills the 8-byte gap $745A-$7461.",
 	},
 	{
+		Name: "data_4a7e", Kind: Raw, Addr: 0x4A7E, Len: 0x73E,
+		Confidence: "Medium: object shape and stage map tables; pointer tables at $515E/$5174/$519E/$51B6 read by $4A3C, stage lists at $4E49 (read by $52FD) and $4D5E (by $5317). Fills the gap $4A7E-$51BB exactly.",
+	},
+	{
+		Name: "data_51ef", Kind: Raw, Addr: 0x51EF, Len: 0x11,
+		Confidence: "High: copied to RAM $E050 by $51D6-$51DF (LD BC,$0011): new-game player values. Fills the gap exactly.",
+	},
+	{
+		Name: "data_53c2", Kind: Raw, Addr: 0x53C2, Len: 0xE,
+		Confidence: "High: $5377 copies 4 bytes 4 times ($53C2), $5366 copies 5 ($53C6), $535B reads 5 ($53CB): 4+5+5 fills the gap exactly.",
+	},
+	{
+		Name: "demo_5412", Kind: Raw, Addr: 0x5412, Len: 0x61,
+		Confidence: "High: demo input script, (duration, input) pairs read by $53D0 from the pointer set at $5405; ends where pat_5473 starts.",
+	},
+	{
+		Name: "data_620f", Kind: Raw, Addr: 0x620F, Len: 0x6,
+		Confidence: "Low: referenced by $62AE; fills the gap $620F-$6214.",
+	},
+	{
+		Name: "data_65a2", Kind: Raw, Addr: 0x65A2, Len: 0x13,
+		Confidence: "Medium: tables at $65A3 and $65A7 (refs $630C, $6AE4, $713D, ...); fills the gap $65A2-$65B4.",
+	},
+	{
+		Name: "data_6630", Kind: Raw, Addr: 0x6630, Len: 0x4D,
+		Confidence: "Medium: player sprite layout tables at $6630 (read by $65DC) and $6669 (by $6611); fills the gap $6630-$667C.",
+	},
+	{
+		Name: "txt_6718", Kind: Raw, Addr: 0x6718, Len: 0xE,
+		Confidence: "High: text table for $4079 (the HEIGHT label), drawn by $66ED; fills the gap.",
+	},
+	{
+		Name: "data_6a73", Kind: Raw, Addr: 0x6A73, Len: 0xD,
+		Confidence: "High: 4-byte records ending in $FF, searched by $6A5C-$6A71; fills the gap.",
+	},
+	{
+		Name: "data_6bec", Kind: Raw, Addr: 0x6BEC, Len: 0x4,
+		Confidence: "Low: referenced by $6BB5; fills the gap.",
+	},
+	{
+		Name: "data_6fdc", Kind: Raw, Addr: 0x6FDC, Len: 0xC,
+		Confidence: "Low: referenced by $6FD6; fills the gap.",
+	},
+	{
+		Name: "data_723a", Kind: Raw, Addr: 0x723A, Len: 0x4,
+		Confidence: "Low: referenced by $722E; fills the gap.",
+	},
+	{
+		Name: "data_75a0", Kind: Raw, Addr: 0x75A0, Len: 0x18,
+		Confidence: "Low: referenced by $74D4 and others; ends where name_75b8 starts.",
+	},
+	{
+		Name: "data_75d0", Kind: Raw, Addr: 0x75D0, Len: 0x7D,
+		Confidence: "Low: referenced by $752B, $7549, $7525, $74B3 and others; starts where name_75b8 ends, fills the gap to $764C.",
+	},
+	{
+		Name: "data_769c", Kind: Raw, Addr: 0x769C, Len: 0x169,
+		Confidence: "Low: referenced by $7422 and $7427; fills the gap $769C-$7804.",
+	},
+	{
+		Name: "data_7a19", Kind: Raw, Addr: 0x7A19, Len: 0x10,
+		Confidence: "Low: referenced by $79FD; fills the gap.",
+	},
+	{
 		Name: "snd_7b4f", Kind: Raw, Addr: 0x7B4F, Len: 4,
 		Confidence: "High: $7B42 copies these 4 bytes with LDDR to RAM $E032-$E035, a sound " +
 			"sequence that $7B25 then sweeps in RAM (sound id $0B).",

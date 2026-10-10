@@ -8,6 +8,10 @@
 # REFDUMP_TICKS (number of ticks, default 3000), REFDUMP_KEYS (optional
 # input schedule: "tick:row:mask:down|up ..." for keymatrixdown/up).
 #
+# Every LD A,R result is logged to <out>.rnd as (u32 tick, u16 address of
+# the LD A,R, u8 value), so cmd/refcompare can feed the port the same
+# "random" values; the R register itself cannot be reproduced natively.
+#
 # Record format (little-endian), one per tick:
 #   "TICK" u32 tick, u32 interrupts-so-far, RAM $E000-$E3FF (1024),
 #   VRAM (16384), VDP R0-R7 (8)
@@ -21,6 +25,12 @@ set ::tick 0
 set ::irq 0
 set ::fh [open $::out w]
 fconfigure $::fh -translation binary
+set ::rh [open "$::out.rnd" w]
+fconfigure $::rh -translation binary
+
+proc refdump_rnd {pc} {
+  puts -nonewline $::rh [binary format isc [expr {$::tick - 1}] $pc [reg A]]
+}
 
 proc refdump_irq {} { incr ::irq }
 
@@ -39,7 +49,7 @@ proc refdump_tick {} {
   for {set i 0} {$i < 8} {incr i} { append s [binary format c [debug read "VDP regs" $i]] }
   puts -nonewline $::fh $s
   incr ::tick
-  if {$::tick >= $::nticks} { close $::fh; exit }
+  if {$::tick >= $::nticks} { close $::fh; close $::rh; exit }
 }
 
 # $403B: H.TIMI handler entry (every interrupt, sound runs here too).
@@ -47,3 +57,9 @@ proc refdump_tick {} {
 # guard at $4042-$4049.
 debug set_bp 0x403B {} refdump_irq
 debug set_bp 0x404B {} refdump_tick
+
+# The instruction after each LD A,R (ED 5F) site: A holds the value read.
+# Tick numbers in the log are those of the tick that is running.
+foreach pc {0x686F 0x6C42 0x704B 0x7139 0x71E6 0x7227 0x725C 0x728C 0x72FB} {
+  debug set_bp [expr {$pc + 2}] {} [list refdump_rnd $pc]
+}

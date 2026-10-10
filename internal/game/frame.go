@@ -80,22 +80,22 @@ func (c *Console) dispatchState() {
 
 // stateHandlers is the table at $40E2, indexed by RAM[$000].
 var stateHandlers = [16]func(*Console){
-	(*Console).state0, // $4102 load title graphics
-	(*Console).state1, // $410F scroll the logo up
-	(*Console).state2, // $4121 hold, then clear
-	(*Console).state3, // $4132 advance
-	(*Console).state4, // $4134 reveal the title, draw the menu
-	(*Console).state5, // $413C menu: blink the pointer
-	(*Console).state6, // $4145 wipe, then start the demo
-	todoState(0x414E),
-	todoState(0x422D),
-	todoState(0x415A),
-	todoState(0x417D),
-	todoState(0x41A3),
-	todoState(0x41B4),
-	todoState(0x41EE),
-	todoState(0x4202),
-	todoState(0x4222),
+	(*Console).state0,  // $4102 load title graphics
+	(*Console).state1,  // $410F scroll the logo up
+	(*Console).state2,  // $4121 hold, then clear
+	(*Console).state3,  // $4132 advance
+	(*Console).state4,  // $4134 reveal the title, draw the menu
+	(*Console).state5,  // $413C menu: blink the pointer
+	(*Console).state6,  // $4145 wipe, then start the demo
+	(*Console).state7,  // $414E demo
+	(*Console).state8,  // $422D game start: title with the chosen line blinking
+	(*Console).state9,  // $415A lose a life / set up the stage
+	(*Console).state10, // $417D wait for the tune, start
+	(*Console).state11, // $41A3 play
+	(*Console).state12, // $41B4 out of lives?
+	(*Console).state13, // $41EE swap players
+	(*Console).state14, // $4202 game over wait
+	(*Console).state15, // $4222 wait, then state 9
 }
 
 // todoState stands in for a state handler that is not yet ported.

@@ -30,12 +30,20 @@ func (c *Console) loadFontWhite() {
 // Ported from $60FA-$615C (High). Order matters: the tiles are loaded into
 // third 0 and triplicated before the sprites, and the mirrored sprites are
 // a load-time derivation (manifest entry spr_5bfe_mirror).
+//
+// The original builds the mirrored sprites in a RAM buffer at $E0B0-$E1EF
+// before copying them to VRAM, and later initialisation does not overwrite
+// all of it ($E130 keeps a byte), so the port leaves the buffer in RAM
+// too. Found by cmd/refcompare and an openMSX write-watchpoint on $E130,
+// which named $612F (RR (IX+$00)).
 func (c *Console) loadStageGraphics() {
 	c.writeRLE("pat_5473")
 	c.writeStageColours()
 	c.triplicateAll()
 	c.copyToVRAM(0x1800, assets.Get("spr_5bfe"))
-	c.copyToVRAM(0x1940, assets.Get("spr_5bfe_mirror"))
+	mirror := assets.Get("spr_5bfe_mirror")
+	copy(c.RAM[0x0B0:], mirror)
+	c.copyToVRAM(0x1940, mirror)
 	c.writeRLE("spr_5d3e")
 }
 

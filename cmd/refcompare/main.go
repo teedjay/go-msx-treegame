@@ -51,11 +51,30 @@ func main() {
 	}
 	n := len(data) / recSize
 
+	rnd := loadRnd(*tracePath + ".rnd")
+	curTick := 0
+	rndMismatch := ""
+
 	c := game.New()
 	c.Boot()
+	c.RandR = func(pc uint16) byte {
+		if len(rnd) == 0 {
+			if rndMismatch == "" {
+				rndMismatch = fmt.Sprintf("tick %d: port reads R at $%04X, reference log is exhausted", curTick, pc)
+			}
+			return 0
+		}
+		e := rnd[0]
+		rnd = rnd[1:]
+		if (e.tick != curTick || e.pc != pc) && rndMismatch == "" {
+			rndMismatch = fmt.Sprintf("tick %d: port reads R at $%04X, reference read it at $%04X in tick %d", curTick, pc, e.pc, e.tick)
+		}
+		return e.val
+	}
 	prevIRQ := 0
 	for i := 0; i < n; i++ {
 		r := parse(data[i*recSize : (i+1)*recSize])
+		curTick = r.tick
 		for k := prevIRQ; k < r.irq; k++ {
 			c.SoundTick()
 		}
@@ -78,12 +97,40 @@ func main() {
 			os.Exit(1)
 		}
 		c.RunTick()
+		if rndMismatch != "" {
+			fmt.Println("RNG divergence:", rndMismatch)
+			os.Exit(1)
+		}
 		if c.Unported != 0 {
 			fmt.Printf("ticks 0-%d match; tick %d reached unported code at $%04X\n", r.tick, r.tick, c.Unported)
 			return
 		}
 	}
 	fmt.Printf("all %d ticks match\n", n)
+}
+
+type rndEntry struct {
+	tick int
+	pc   uint16
+	val  byte
+}
+
+// loadRnd reads the LD A,R log written next to the trace (7-byte records:
+// u32 tick, u16 pc, u8 value). A missing log means no R reads are expected.
+func loadRnd(path string) []rndEntry {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+	var out []rndEntry
+	for i := 0; i+7 <= len(b); i += 7 {
+		out = append(out, rndEntry{
+			tick: int(binary.LittleEndian.Uint32(b[i:])),
+			pc:   binary.LittleEndian.Uint16(b[i+4:]),
+			val:  b[i+6],
+		})
+	}
+	return out
 }
 
 func parse(b []byte) record {

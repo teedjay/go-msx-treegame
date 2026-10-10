@@ -39,3 +39,53 @@ func TestCheatOnlyOnMenu(t *testing.T) {
 		t.Error("cheat acted outside the menu")
 	}
 }
+
+// Dying above the bottom of a cheat-started stage falls back to the bottom
+// of the map and restarts, instead of scrolling past the end of the map.
+func TestCheatDeathAfterClimbing(t *testing.T) {
+	for _, n := range []int{1, 2, 5, 9} {
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("stage %d: panic: %v", n, r)
+				}
+			}()
+			c := New()
+			c.Boot()
+			for c.RAM[0x000] != 5 {
+				c.Frame()
+			}
+			c.CheatStart(n)
+			for c.RAM[0x000] != 11 {
+				c.Frame()
+			}
+			for i := 0; i < 12; i++ { // as if the player had climbed
+				c.scrollUp()
+			}
+			c.RAM[0x1B2], c.RAM[0x003], c.RAM[0x001] = 8, 0, 1 // die ($525D)
+			lives := c.RAM[0x050]
+			for i := 0; i < 3000 && !(c.RAM[0x000] == 11 && c.RAM[0x050] < lives); i++ {
+				c.Frame()
+			}
+			if c.RAM[0x000] != 11 || c.RAM[0x050] != lives-1 {
+				t.Errorf("stage %d: no restart after death: state %02X lives %d", n, c.RAM[0x000], c.RAM[0x050])
+			}
+		}()
+	}
+}
+
+// The derived bottom type agrees with new-game data for stage 1 ($84) and
+// with the map the game actually builds for every stage.
+func TestBottomRecordType(t *testing.T) {
+	if got := bottomRecordType(0); got != 0x84 {
+		t.Errorf("stage 1 bottom type %02X, want $84 (new-game RAM[$056])", got)
+	}
+	for idx := byte(0); idx < 9; idx++ {
+		c := New()
+		c.RAM[0x05C] = idx
+		c.buildStageMap()
+		if got, want := bottomRecordType(idx), c.VRAM[0x3B81]; got != want {
+			t.Errorf("stage index %d: derived %02X, built map has %02X", idx, got, want)
+		}
+	}
+}

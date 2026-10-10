@@ -236,8 +236,18 @@ The big blocks are:
   `cmd/play`). It hooks the engine at one point, right after
   `newGameVars` in state 8, and sets `RAM[$05C]` (stage index 0-8),
   `RAM[$051]` (stage number) and `RAM[$05D]` (stage colour), as the stage
-  advance at `$741A-$743B` would. It is inactive unless triggered, so the
-  traces still match.
+  advance at `$741A-$743B` would, and `RAM[$056]`, the bottom-of-map
+  record type. It is inactive unless triggered, so the traces still match.
+- 2026-10-10 bug (reported by the user): on a cheat-started stage 2-9,
+  dying above the bottom made the player fall through the ground and the
+  game crash. Cause: `RAM[$056]` stayed at the new-game value `$84`
+  (stage 1's bottom record). In normal play `$69CA` sets it from the
+  object reached at the top of the previous stage (`$8A` for stages
+  2-9), so scrolling down never found the bottom and ran off the map
+  into code bytes. The port panics on such reads (`romByte`); the
+  original would read garbage. Fix: the cheat derives the value from the
+  stage's first map record. A port bug in the extension, not in the
+  ported code.
 
 ## Stages
 

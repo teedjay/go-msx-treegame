@@ -17,6 +17,13 @@ type Console struct {
 	RAM  [0x400]byte
 	VRAM [msxrender.VRAMSize]byte
 	Reg  [8]byte
+	// PSG holds the last value written to each AY-3-8910 register.
+	PSG [16]byte
+	// Input is the current controller state; see input.go.
+	Input Input
+	// Unported is set to the Z80 address of the last not-yet-ported
+	// routine the engine reached (0 if none), so tools can report it.
+	Unported uint16
 }
 
 // New returns a console in its power-on state.

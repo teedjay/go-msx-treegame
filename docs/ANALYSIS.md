@@ -9,9 +9,15 @@ plausible guess.
 
 ## Open issues
 
-1. Trace the per-frame tick (`$403B` → `$4555`, `$40C6`) and name the 16
-   top-level states.
-2. Confirm the index range of `RAM[$1B2]` (dispatch at `$61A1`).
+1. Port states 7+ (demo and gameplay), starting with `$53F0` (stage setup,
+   called at the end of state 6) and `$540C` (state 7).
+2. Tick pacing: in the original, a tick that takes longer than a frame
+   leaves the busy flag set, and the following interrupts run sound only.
+   Tick 0 (title graphics load) spans 76 interrupts, the stage load at the
+   end of state 6 spans 106, and some gameplay ticks span 2. The port runs
+   one tick per `Frame`, so these pauses are shorter. Decide how to model
+   them (a per-tick cost table measured from traces is one option).
+3. Confirm the index range of `RAM[$1B2]` (dispatch at `$61A1`).
 3. Classify the remaining data blocks: `$4A7E-$51BB` (probably stage or map
    data), `$5412-$5472`, `$769C-$7804`, `$7C89-$7FFF`, and the text strings
    around `$4743-$47EE`.
@@ -47,6 +53,53 @@ plausible guess.
   It then dispatches on `RAM[$000]` through the 16-entry table at `$40E2`.
   **Every state handler's `RET` falls into the pushed continuation.** In
   state 8 the `RET` goes straight back to `$403B`.
+
+## States (table at `$40E2`, indexed by `RAM[$000]`)
+
+| State | Handler | What | Port | Verified |
+| --- | --- | --- | --- | --- |
+| 0 | `$4102` | load title graphics (one tick, 76 frames in the original) | `state0` | trace |
+| 1 | `$410F` | publisher logo scrolls up a row every other tick, 14 rows | `state1` | trace |
+| 2 | `$4121` | hold 256 ticks, clear screen, backdrop black | `state2` | trace |
+| 3 | `$4132` | advance | `state3` | trace |
+| 4 | `$4134` | reveal title logo one column per tick, draw menu, wait to $34 | `state4` | trace |
+| 5 | `$413C` | menu, pointer blinks, 256 ticks | `state5` | trace |
+| 6 | `$4145` | column wipe, then stage setup `$53F0` | `state6` | trace up to `$53F0` |
+| 7 | `$414E` | demo / play | not yet | |
+| 8 | `$422D` | game start (set by the menu) | not yet | |
+| 9-15 | `$415A` `$417D` `$41A3` `$41B4` `$41EE` `$4202` `$4222` | not yet traced | | |
+
+Continuations (see "Boot and frame structure"): `$458A` merges both
+joysticks and the keyboard in attract mode. A fresh press jumps to the menu
+(`$423F`); on the menu a direction moves `RAM[$042]` and a trigger starts a
+game with mode `tab_45e7[RAM[$042]]`. `$43D7` blinks the player label every
+32 ticks in a game.
+
+## Verification against the original (lockstep trace)
+
+`scripts/refdump.tcl` runs the original in openMSX (C-BIOS, offline oracle)
+and records RAM, VRAM and VDP registers at `$404B`, the start of every game
+tick, plus the interrupt count. `cmd/refcompare` replays the port in
+lockstep, running the sound sequencer once per recorded interrupt, and
+reports the first differing byte.
+
+- 2026-10-10: ticks 0-626 of the attract sequence (states 0-6, including
+  the title tune's sound channel state) match byte for byte. The port then
+  reaches the unported `$53F0`.
+- The comparator was checked by flipping one VRAM byte in a copy of the
+  trace: it reported exactly that tick and address.
+
+## Sound (`$7A4E`-`$7C88`, High: traced instruction by instruction)
+
+Ported in `internal/game/sound.go`. Three channels of 11 bytes at `$E010`,
+`$E01B`, `$E026`, plus mixer shadow `RAM[$031]`. `$7A4E` starts a sound id
+(1-3 channels, priority on the low 6 bits). `$7AFB` runs every interrupt.
+There are two sequence formats: effects (`$2n` length, `$1n` noise,
+`$vp pp` volume and period, `$FE n` repeat, `$FF` end) and tunes (bit 7
+of the id: `$Dn` tempo, `$Fn` volume, `$En` octave, `$nl` note and length,
+note 12 = rest). Sound `$0B` runs from a 4-byte sequence copied to RAM
+`$E032-$E035` and swept in place by `$7B25`. The game logic reads channel
+state (`RAM[$012]`) to wait for tunes to end.
 
 ## VRAM layout (High: derived and visually confirmed 2026-10-10)
 

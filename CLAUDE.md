@@ -236,6 +236,12 @@ go run ./cmd/screenshot -out /tmp/shots && \
   for f in screenshots/*.png; do cmp "$f" "/tmp/shots/$(basename "$f")"; done
 ```
 
+- Run `go run ./cmd/refcompare -trace <trace>` after any engine change. It
+  replays the port against a per-tick trace of the original (see
+  `scripts/refdump.tcl` and docs/ANALYSIS.md) and names the first differing
+  byte. The attract trace must keep matching through every ported state.
+  Traces are ROM-derived: keep them outside the repo (for example in
+  `/tmp`).
 - Run `-check` after touching the manifest, the assets package, or how any
   asset is produced.
 - Run the screenshot byte-diff after any engine change that should not

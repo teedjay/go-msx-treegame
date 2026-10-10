@@ -5,10 +5,24 @@ package manifest
 // asset is written to; a role is added only once it is confirmed.
 var Entries = []Entry{
 	{
+		Name: "txt_426d", Kind: Raw, Addr: 0x426D, Len: 16,
+		Confidence: "Medium: text drawn by $41CA via $4079; fills the gap $426D-$427C exactly.",
+	},
+	{
+		Name: "tab_45e7", Kind: Raw, Addr: 0x45E7, Len: 4,
+		Confidence: "High: $45B9-$45C3 indexes it with the menu selection RAM[$042] (0-3) and " +
+			"stores the byte to RAM[$002] (game mode). Ends exactly where the font starts.",
+	},
+	{
 		Name: "font_45eb", Kind: Raw, Addr: 0x45EB, Len: 0x180,
 		Confidence: "High: copied by $44B5-$44C5 (LD HL,$45EB / LD BC,$0180 / JP $446E) to the " +
 			"pattern table at DE+$2000. The last $28 bytes overlap the text strings at $4743; the " +
 			"original copies them into VRAM regardless, so the asset keeps the full $180.",
+	},
+	{
+		Name: "txt_4743", Kind: Raw, Addr: 0x4743, Len: 0x47EF - 0x4743,
+		Confidence: "Medium: text strings for $4079 (address, chars, $FE new address, $FF end), " +
+			"referenced at $4743, $4752, $4758, $475E, $47D7 and $47E4; ends where name_47ef starts.",
 	},
 	{
 		Name: "name_47ef", Kind: RLE, Addr: 0x47EF, End: 0x4800,
@@ -59,6 +73,17 @@ var Entries = []Entry{
 		Name: "tab_745a", Kind: Raw, Addr: 0x745A, Len: 8,
 		Confidence: "High: $7431-$743B indexes it with B&7 and stores the byte to RAM[$05D], " +
 			"the colour that $615D substitutes for nibble 3. Fills the 8-byte gap $745A-$7461.",
+	},
+	{
+		Name: "snd_7b4f", Kind: Raw, Addr: 0x7B4F, Len: 4,
+		Confidence: "High: $7B42 copies these 4 bytes with LDDR to RAM $E032-$E035, a sound " +
+			"sequence that $7B25 then sweeps in RAM (sound id $0B).",
+	},
+	{
+		Name: "snd_7c89", Kind: Raw, Addr: 0x7C89, Len: 0x377,
+		Confidence: "Medium: note period table at $7C89 (12 entries, read by $7C6A), sound " +
+			"pointer table at $7C93 (read by $7A96), and the sequences they point to, through " +
+			"the end of the ROM. Exact boundaries inside the block not yet traced.",
 	},
 	{
 		Name: "name_75b8", Kind: RLE, Addr: 0x75B8, End: 0x75D0,

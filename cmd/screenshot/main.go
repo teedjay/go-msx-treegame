@@ -29,6 +29,7 @@ var stills = []still{
 	{"03-title-reveal", 290}, // state 4: title logo half revealed
 	{"04-menu", 350},         // state 5: menu, pointer shown
 	{"05-wipe", 610},         // state 6: column wipe
+	{"06-stage1", 1100},      // state 7: the demo playing stage 1
 }
 
 func main() {

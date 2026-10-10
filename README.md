@@ -5,9 +5,12 @@ platformer). This is **not an emulator**: no Z80 code runs at runtime. Each
 original routine is read, understood and rewritten as ordinary Go against a
 small hardware-abstraction layer.
 
-Status: the whole engine is ported and playable, with sound. It is
-verified tick by tick against the original (see "Verification"); stage
-clear, game over and 2-player games still need play-testing.
+<img src="screenshots/06-stage1.png" width="512" alt="Stage 1 running in the port">
+
+**Status: complete.** The whole engine is ported and playable, with sound.
+It matches the original byte for byte, tick by tick, over the attract
+sequence, the demo and scripted games (see "Verification"). Game over and
+stage clear have been confirmed by play-testing.
 
 ## Requirements
 

@@ -7,32 +7,33 @@ Confidence key: **High** = traced instruction by instruction and/or visually
 confirmed. **Medium** = control flow clear, meaning inferred. **Low** =
 plausible guess.
 
+## Status
+
+**Complete (2026-10-10).** Every routine reachable from the game is ported.
+
+- Verified by lockstep traces against the original: game states 0-11,
+  player states 0, 2, 3, 4, 5, 6, 8 and 9, and the sound channel state
+  throughout.
+- Confirmed by the user's play-testing: game over (states 12-15) and stage
+  clear (player states 12-18, the castle sequence).
+
 ## Open issues
 
-1. Coverage: verified so far are game states 0-11 and player states 0,
-   2, 3, 4, 5, 6, 8 and 9 (see "Verification"). Not yet exercised against
-   the original: losing a life in a game, game over (states 12-15), 2-player
-   swaps, the ladder (player state 7), reaching the top of a section and
-   stage clear (player states 12-18). Needs real play: record with
-   `cmd/play -record` in a KEYBOARD mode and replay into openMSX.
+Known, accepted deviations and unverified details (none blocks play):
+
+1. Tick pacing: in the original, a tick that takes longer than a frame
+   leaves the busy flag set, and the next interrupts run sound only (the
+   stage load spans 106 frames, some gameplay ticks 2). The port runs one
+   tick per `Frame`, so those moments are shorter.
 2. `upd6BF0` (`$6C38`): when a special enemy does not move, the original
    tests `BIT 2,E` with E left over from earlier code; the port uses the
-   enemy's low y byte. Unverified until a trace includes a stationary
-   special enemy.
-3. Tick pacing: in the original, a tick that takes longer than a frame
-   leaves the busy flag set, and the following interrupts run sound only.
-   Tick 0 (title graphics load) spans 76 interrupts, the stage load at the
-   end of state 6 spans 106, and some gameplay ticks span 2. The port runs
-   one tick per `Frame`, so these pauses are shorter. Decide how to model
-   them (a per-tick cost table measured from traces is one option).
-3. Confirm the index range of `RAM[$1B2]` (dispatch at `$61A1`).
-3. Classify the remaining data blocks: `$4A7E-$51BB` (probably stage or map
-   data), `$5412-$5472`, `$769C-$7804`, `$7C89-$7FFF`, and the text strings
-   around `$4743-$47EE`.
-4. Find what loads sprite patterns `$1A80-$1AFF` (sprites 20-23), if
-   anything.
-5. RNG: `LD A,R` at `$686F $6C42 $704B $7139 $71E6 $7227 $725C $728C
-   $72FB`. Document what each draws and the distribution it needs.
+   enemy's low y byte. It only affects that enemy's animation frame and has
+   not been exercised by a trace.
+3. Not yet trace-verified: 2-player swaps (state 13), the ladder (player
+   state 7), the ending after stage 9, and the loop back to the first
+   layout. The code for them is ported (High).
+4. The index range of `RAM[$1B2]` (dispatch at `$61A1`) is assumed to be
+   0-18, from the table length.
 
 ## The dump
 

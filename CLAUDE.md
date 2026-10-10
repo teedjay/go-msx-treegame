@@ -58,11 +58,16 @@ plausible guess.
 - **VDP ports** come from BIOS `$0006`/`$0007` (read at `$44F3`, `$4501`),
   not hard-coded `$98`/`$99`. No `OTIR`/`OUTI` found in a quick scan, so VRAM
   writes probably go through `OUT (C)` in helper routines near `$44F0`.
-- **Computed-jump trampoline at `$405F`** (Medium): `ADD A,A` / `POP HL` /
-  … / `LD E,(HL); INC HL; LD D,(HL); EX DE,HL; JP (HL)`. It is a jump table
-  laid out inline after the `CALL`. **The disassembler must handle this**
-  (Phase 1): it must decode the table entries that follow each call site as
-  data and treat them as code targets.
+- **Computed-jump trampoline at `$4061`** (High): `ADD A,A` / `POP HL` /
+  `CALL $4031` (add A to HL) / `LD E,(HL); INC HL; LD D,(HL); EX DE,HL;
+  JP (HL)`. It is a jump table laid out inline after the `CALL`. There are
+  only two call sites: `$40DF` (the state machine, 16 entries at `$40E2`)
+  and `$61A8` (19 entries at `$61AB`). Both callers `PUSH` a continuation
+  address before dispatching, so every handler's `RET` lands there, not
+  back at the caller. *Correction 2026-10-10: first noted as `$405F`; that
+  address is the tail of `JP $0047`.*
+- Detailed findings now live in `docs/ANALYSIS.md`, which is the source of
+  truth. This section is a summary only.
 - **BIOS usage seen**: `WRTVDP` ×2, `RDVRM` ×1, `WRTPSG` ×6, `RDPSG` ×1,
   `SNSMAT` ×2, plus `$013E` (VDP status read). Input appears to go through
   `SNSMAT` (keyboard matrix) and PSG port reads (joystick). Confirm both.
@@ -124,7 +129,7 @@ reference screenshots and checking behaviour. It never runs inside the port.
 
 | Tool | Why it has to exist |
 | --- | --- |
-| `internal/z80dis` + `cmd/disasm` | Recursive-descent disassembler with **byte-level coverage tracking**. It must handle the inline jump-table trampoline at `$405F`, and it starts from `$408E` (INIT) and `$403B` (H.TIMI handler). |
+| `internal/z80dis` + `cmd/disasm` | Recursive-descent disassembler with **byte-level coverage tracking**. It must handle the inline jump-table trampoline at `$4061`, and it starts from `$408E` (INIT) and `$403B` (H.TIMI handler). |
 | `cmd/extract` | Rebuilds every asset from the ROM via a **manifest** (address, length, and method: raw, compressed or derived). Has a `-check` mode that re-derives everything and diffs without writing. Warns on a checksum mismatch. |
 | `internal/<compression>` + decoder cmd | Once the format is traced. Decodes to flat buffers. |
 | `cmd/gfxpreview`, `cmd/gfxviewer` | Render byte ranges as tile grids to classify data. |
@@ -278,7 +283,7 @@ state the engine already produces and leave the engine untouched.
 ## Suggested first week
 
 1. Repo, `.gitignore`, `NOTICE`, README skeleton, module path. *(Phase 0)*
-2. Disassembler (with the `$405F` trampoline) + listing. *(Phases 1-2)*
+2. Disassembler (with the `$4061` trampoline) + listing. *(Phases 1-2)*
 3. Confirm the `$452C`-derived VRAM layout by compositing one
    pattern+colour pair.
 4. Trace the compression format, write the decoder, extract the first

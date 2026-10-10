@@ -20,6 +20,7 @@ func (c *Console) state8() {
 	c.RAM[0x004]--
 	if c.RAM[0x004] == 0 {
 		c.newGameVars()
+		c.applyStartStage() // extension: level-select cheat, see cheat.go
 		c.advanceState(0x20)
 		return
 	}

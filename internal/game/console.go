@@ -27,6 +27,8 @@ type Console struct {
 	// RandR, when set, supplies the values of LD A,R (see rng.go).
 	RandR    func(pc uint16) byte
 	rngState uint32
+	// startStage is the cheat's pending start stage (cheat.go); 0 = off.
+	startStage byte
 }
 
 // New returns a console in its power-on state.

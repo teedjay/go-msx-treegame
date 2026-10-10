@@ -25,6 +25,9 @@ go run ./cmd/extract     # once: derive the assets from your ROM
 go run ./cmd/play        # arrows move, SPACE jumps/starts, Left Shift = SELECT, Esc quits
 ```
 
+Cheat: on the PLAY SELECT screen, press 1-9 to start at that stage in the
+selected mode. This is an extension; the original has no level select.
+
 ## Tools
 
 | Command | Purpose |

@@ -5,6 +5,7 @@
 // Controls: arrow keys move, SPACE is trigger A (jump / start), and Left
 // Shift is SELECT (trigger B). Both the keyboard and joystick port 1 see
 // them, so every menu choice works. Esc quits. -mute disables sound.
+// Cheat: on the menu screen, keys 1-9 start the game at that stage.
 //
 // -record writes the keyboard changes per tick in the REFDUMP_KEYS format
 // of scripts/refdump.tcl, so a session played with a KEYBOARD menu choice
@@ -22,6 +23,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	ebaudio "github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"go-msx-treegame/internal/audio"
 	"go-msx-treegame/internal/game"
@@ -50,6 +52,12 @@ func (p *player) Update() error {
 	in.Joy[0] = ^joy
 	if p.rec != nil {
 		p.record(row7, row8)
+	}
+	// Cheat: on the menu, 1-9 starts at that stage in the selected mode.
+	for n := 1; n <= 9; n++ {
+		if inpututil.IsKeyJustPressed(ebiten.Key1 + ebiten.Key(n-1)) {
+			p.c.CheatStart(n)
+		}
 	}
 	p.c.Frame()
 	if p.sound != nil {

@@ -230,6 +230,26 @@ The big blocks are:
 - `$769C-$7804` (361 bytes)
 - `$7C89-$7FFF` (887 bytes)
 
+## Extensions (not in the original)
+
+- Level-select cheat (`internal/game/cheat.go`, keys 1-9 on the menu in
+  `cmd/play`). It hooks the engine at one point, right after
+  `newGameVars` in state 8, and sets `RAM[$05C]` (stage index 0-8),
+  `RAM[$051]` (stage number) and `RAM[$05D]` (stage colour), as the stage
+  advance at `$741A-$743B` would. It is inactive unless triggered, so the
+  traces still match.
+
+## Stages
+
+Nine layouts (the stage list table at `$4E49`, indexed by `RAM[$05C]`;
+entry 9 repeats layout 0). Clearing the stage with index 8 makes
+`RAM[$05C]` 9, which selects the ending: the `$77C5` castle data and
+"CONGRATULATIONS". The stage colour is `$77` for index 0 and 9 and up,
+else `tab_745a[index & 7]` (index 4 and 8 give `$11`: night). From the
+code, unverified in play: after the ending `$757C` reloads `RAM[$054-$060]`
+from `$51F3`, which resets the stage index to 0 but not the stage number,
+so the layouts loop while the number keeps counting.
+
 ## Corrections
 
 - 2026-10-10: the font was first described as `$45EB` +$180. The copy

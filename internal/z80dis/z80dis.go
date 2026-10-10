@@ -71,9 +71,9 @@ type decoder struct {
 	f      Fetcher
 	lab    Labeler
 	refLab Labeler
-	pc  uint16 // start address
-	n   int    // bytes consumed
-	in  Inst
+	pc     uint16 // start address
+	n      int    // bytes consumed
+	in     Inst
 	// index-register mode: "" (HL), "IX" or "IY"
 	ix   string
 	disp int8

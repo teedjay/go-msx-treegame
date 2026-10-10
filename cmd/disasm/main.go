@@ -350,7 +350,7 @@ func (d *disasm) writeHeader(w *bufio.Writer) {
 
 func (d *disasm) comment(in z80dis.Inst) string {
 	if in.HasRef {
-		if n, ok := names[in.Ref]; ok && !rom.Contains(in.Ref) {
+		if n, ok := names[in.Ref]; ok && in.Ref >= 0xF000 {
 			return n
 		}
 		if in.Ref >= 0xE000 && in.Ref < 0xF000 {

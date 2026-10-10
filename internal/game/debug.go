@@ -11,3 +11,11 @@ func (c *Console) DebugLoadGraphics(stageColour byte) {
 	c.loadFontWhite()
 	c.loadStageGraphics()
 }
+
+// DebugPlaySound starts sound id through the sequencer ($7A4E).
+func (c *Console) DebugPlaySound(id byte) { c.playSound(id) }
+
+// DebugSoundBusy reports whether any sound channel is active.
+func (c *Console) DebugSoundBusy() bool {
+	return c.RAM[0x012] != 0 || c.RAM[0x01D] != 0 || c.RAM[0x028] != 0
+}

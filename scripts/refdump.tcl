@@ -6,7 +6,9 @@
 #
 # Environment: REFDUMP_OUT (output file, default ref.trace),
 # REFDUMP_TICKS (number of ticks, default 3000), REFDUMP_KEYS (optional
-# input schedule: "tick:row:mask:down|up ..." for keymatrixdown/up).
+# input schedule: "tick:row:mask:down|up ..." for keymatrixdown/up) or
+# REFDUMP_KEYSFILE (the same, read from a file; cmd/play -record writes
+# this format).
 #
 # Every LD A,R result is logged to <out>.rnd as (u32 tick, u16 address of
 # the LD A,R, u8 value), so cmd/refcompare can feed the port the same
@@ -21,6 +23,17 @@ set throttle off
 set ::out    [expr {[info exists ::env(REFDUMP_OUT)]   ? $::env(REFDUMP_OUT)   : "ref.trace"}]
 set ::nticks [expr {[info exists ::env(REFDUMP_TICKS)] ? $::env(REFDUMP_TICKS) : 3000}]
 set ::keys   [expr {[info exists ::env(REFDUMP_KEYS)]  ? $::env(REFDUMP_KEYS)  : ""}]
+if {[info exists ::env(REFDUMP_KEYSFILE)]} {
+  set kf [open $::env(REFDUMP_KEYSFILE) r]
+  append ::keys " " [read $kf]
+  close $kf
+}
+# Index the schedule by tick.
+array set ::keyat {}
+foreach k $::keys {
+  lassign [split $k :] t row mask dir
+  lappend ::keyat($t) [list $row $mask $dir]
+}
 set ::tick 0
 set ::irq 0
 set ::fh [open $::out w]
@@ -35,9 +48,9 @@ proc refdump_rnd {pc} {
 proc refdump_irq {} { incr ::irq }
 
 proc refdump_tick {} {
-  foreach k $::keys {
-    lassign [split $k :] t row mask dir
-    if {$t == $::tick} {
+  if {[info exists ::keyat($::tick)]} {
+    foreach e $::keyat($::tick) {
+      lassign $e row mask dir
       if {$dir eq "down"} { keymatrixdown $row $mask } else { keymatrixup $row $mask }
     }
   }

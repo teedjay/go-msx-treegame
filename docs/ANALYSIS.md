@@ -9,9 +9,17 @@ plausible guess.
 
 ## Open issues
 
-1. Port states 7+ (demo and gameplay), starting with `$53F0` (stage setup,
-   called at the end of state 6) and `$540C` (state 7).
-2. Tick pacing: in the original, a tick that takes longer than a frame
+1. Coverage: verified so far are game states 0-11 and player states 0,
+   2, 3, 4, 5, 6, 8 and 9 (see "Verification"). Not yet exercised against
+   the original: losing a life in a game, game over (states 12-15), 2-player
+   swaps, the ladder (player state 7), reaching the top of a section and
+   stage clear (player states 12-18). Needs real play: record with
+   `cmd/play -record` in a KEYBOARD mode and replay into openMSX.
+2. `upd6BF0` (`$6C38`): when a special enemy does not move, the original
+   tests `BIT 2,E` with E left over from earlier code; the port uses the
+   enemy's low y byte. Unverified until a trace includes a stationary
+   special enemy.
+3. Tick pacing: in the original, a tick that takes longer than a frame
    leaves the busy flag set, and the following interrupts run sound only.
    Tick 0 (title graphics load) spans 76 interrupts, the stage load at the
    end of state 6 spans 106, and some gameplay ticks span 2. The port runs
@@ -88,6 +96,16 @@ reports the first differing byte.
   reaches the unported `$53F0`.
 - The comparator was checked by flipping one VRAM byte in a copy of the
   trace: it reported exactly that tick and address.
+- 2026-10-10: the whole gameplay port matches. Attract trace: 3000 ticks
+  including the full scripted demo (player states 0, 2, 3, 5, 6, 8, 9).
+  Four scripted keyboard-mode games from the menu (8000 + 3 x 12000
+  ticks, pseudo-random input): all match (game states 8-11, player states
+  0, 2, 3, 4, 5, 6).
+- One divergence was found and fixed on the way: `$E130` kept a byte of
+  the mirrored-sprite RAM buffer that `$6115-$6148` builds at `$E0B0`. An
+  openMSX write-watchpoint on `$E130` named `$612F`.
+- `LD A,R` (9 sites) is replayed from a log the trace script writes; the
+  comparator flags any difference in call site or tick.
 
 ## Sound (`$7A4E`-`$7C88`, High: traced instruction by instruction)
 

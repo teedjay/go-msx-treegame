@@ -68,8 +68,9 @@ var (
 )
 
 type decoder struct {
-	f   Fetcher
-	lab Labeler
+	f      Fetcher
+	lab    Labeler
+	refLab Labeler
 	pc  uint16 // start address
 	n   int    // bytes consumed
 	in  Inst
@@ -93,7 +94,7 @@ func (d *decoder) imm16() uint16 {
 
 func (d *decoder) addr(a uint16) string {
 	d.in.Ref, d.in.HasRef = a, true
-	return d.lab(a)
+	return d.refLab(a)
 }
 
 func (d *decoder) target(a uint16, fl Flow) string {
@@ -157,12 +158,23 @@ func (d *decoder) rp2(p int) string {
 	return rp2Tab[p]
 }
 
-// Decode decodes the instruction at pc. lab may be nil.
+// Decode decodes the instruction at pc. lab formats jump/call targets and
+// immediate or memory operands alike; it may be nil.
 func Decode(f Fetcher, pc uint16, lab Labeler) Inst {
+	return DecodeWith(f, pc, lab, lab)
+}
+
+// DecodeWith is Decode with separate formatters for control-flow targets
+// (lab) and for immediate or absolute memory operands (refLab), so that a
+// constant like LD DE,$0000 is not printed as a BIOS routine name.
+func DecodeWith(f Fetcher, pc uint16, lab, refLab Labeler) Inst {
 	if lab == nil {
 		lab = DefaultLabeler
 	}
-	d := &decoder{f: f, lab: lab, pc: pc}
+	if refLab == nil {
+		refLab = DefaultLabeler
+	}
+	d := &decoder{f: f, lab: lab, refLab: refLab, pc: pc}
 	d.in.Addr = pc
 	d.in.Text = d.decode()
 	d.in.Len = d.n

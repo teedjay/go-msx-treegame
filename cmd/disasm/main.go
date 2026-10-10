@@ -76,6 +76,15 @@ func (d *disasm) labeler(a uint16) string {
 	return fmt.Sprintf("$%04X", a)
 }
 
+// refLabeler formats immediates and memory operands: BIOS routine names are
+// not applied (a constant $0000 is not CHKRAM), system variables are.
+func (d *disasm) refLabeler(a uint16) string {
+	if a < rom.Base {
+		return fmt.Sprintf("$%04X", a)
+	}
+	return d.labeler(a)
+}
+
 func (d *disasm) addTarget(a, from uint16) {
 	if !rom.Contains(a) {
 		return
@@ -270,7 +279,7 @@ func (d *disasm) write(w *bufio.Writer) {
 			d.writeHeader(w)
 			a = rom.Base + 16
 		case covHead:
-			in := z80dis.Decode(d.r.At, a, d.labeler)
+			in := z80dis.DecodeWith(d.r.At, a, d.labeler, d.refLabeler)
 			cmt := d.comment(in)
 			line := fmt.Sprintf("    %04X  %-12s  %s", a, hexBytes(in.Bytes), in.Text)
 			if cmt != "" {
@@ -334,7 +343,7 @@ func (d *disasm) writeHeader(w *bufio.Writer) {
 	fmt.Fprintf(w, "    4000  %-12s  DB \"AB\"            ; cartridge ID\n", hexBytes([]byte{d.r.At(0x4000), d.r.At(0x4001)}))
 	for i, n := range []string{"INIT", "STATEMENT", "DEVICE", "TEXT"} {
 		a := uint16(0x4002 + 2*i)
-		fmt.Fprintf(w, "    %04X  %-12s  DW %-14s ; %s\n", a, hexBytes([]byte{d.r.At(a), d.r.At(a + 1)}), d.labeler(d.r.Word(a)), n)
+		fmt.Fprintf(w, "    %04X  %-12s  DW %-14s ; %s\n", a, hexBytes([]byte{d.r.At(a), d.r.At(a + 1)}), d.refLabeler(d.r.Word(a)), n)
 	}
 	fmt.Fprintf(w, "    400A  %-12s  DB %s  ; reserved\n\n", "", dbList(d.r.Data[10:16]))
 }

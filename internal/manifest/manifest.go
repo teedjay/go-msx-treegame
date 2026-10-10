@@ -45,7 +45,7 @@ type Entry struct {
 	// End is the ROM address one past the stream; checked to catch a
 	// decoder that runs short or long (tight packing). RLE and RLEAt.
 	End    uint16
-	Source string                 // Derived
+	Source string                  // Derived
 	Derive func(src []byte) []byte // Derived
 	// Confidence: High, Medium or Low, with the evidence.
 	Confidence string

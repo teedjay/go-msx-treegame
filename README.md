@@ -29,7 +29,8 @@ go run ./cmd/play        # arrows move, SPACE jumps/starts, Left Shift = SELECT,
 ```
 
 Cheat: on the PLAY SELECT screen, press 1-9 to start at that stage in the
-selected mode. This is an extension; the original has no level select.
+selected mode; the chosen stage is shown briefly as an overlay. This is an
+extension; the original has no level select.
 
 ## Tools
 

@@ -5,7 +5,8 @@
 // Controls: arrow keys move, SPACE is trigger A (jump / start), and Left
 // Shift is SELECT (trigger B). Both the keyboard and joystick port 1 see
 // them, so every menu choice works. Esc quits. -mute disables sound.
-// Cheat: on the menu screen, keys 1-9 start the game at that stage.
+// Cheat: on the menu screen, keys 1-9 start the game at that stage; the
+// chosen stage is shown briefly as an overlay (overlay.go).
 //
 // -record writes the keyboard changes per tick in the REFDUMP_KEYS format
 // of scripts/refdump.tcl, so a session played with a KEYBOARD menu choice
@@ -38,6 +39,7 @@ type player struct {
 	rec    *os.File
 	prev   [2]byte // last recorded rows 7 and 8, active-high
 	sound  *audio.Stream
+	msg    overlay
 }
 
 func (p *player) Update() error {
@@ -55,11 +57,12 @@ func (p *player) Update() error {
 	}
 	// Cheat: on the menu, 1-9 starts at that stage in the selected mode.
 	for n := 1; n <= 9; n++ {
-		if inpututil.IsKeyJustPressed(ebiten.Key1 + ebiten.Key(n-1)) {
-			p.c.CheatStart(n)
+		if inpututil.IsKeyJustPressed(ebiten.Key1+ebiten.Key(n-1)) && p.c.CheatStart(n) {
+			p.msg.show(fmt.Sprintf("STAGE %d", n))
 		}
 	}
 	p.c.Frame()
+	p.msg.tick()
 	if p.sound != nil {
 		p.sound.PSG.SetRegs(p.c.PSG)
 	}
@@ -118,6 +121,7 @@ func (p *player) record(row7, row8 byte) {
 
 func (p *player) Draw(screen *ebiten.Image) {
 	msxrender.RenderInto(p.frame, &p.c.VRAM, &p.c.Reg)
+	p.msg.draw(p.frame)
 	p.screen.WritePixels(p.frame.Pix)
 	screen.DrawImage(p.screen, nil)
 }

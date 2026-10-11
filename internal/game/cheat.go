@@ -10,15 +10,16 @@ package game
 // CheatStart starts a game from the menu (state 5) at stage n (1-9), in
 // the mode of the currently selected menu line, exactly as a trigger press
 // would ($45B4-$45CC), and remembers n for state8. It does nothing outside
-// the menu or for other n.
-func (c *Console) CheatStart(n int) {
+// the menu or for other n, and reports whether it started a game.
+func (c *Console) CheatStart(n int) bool {
 	if c.RAM[0x000] != 5 || n < 1 || n > 9 {
-		return
+		return false
 	}
 	c.startStage = byte(n)
 	c.RAM[0x004] = 0
 	c.RAM[0x002] = romByte(0x45E7 + uint16(c.RAM[0x042]))
 	c.RAM[0x000], c.RAM[0x001] = 0x08, 0x00
+	return true
 }
 
 // applyStartStage overrides the stage variables loaded by newGameVars:
